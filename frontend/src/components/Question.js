@@ -47,6 +47,7 @@ class Question extends Component {
             Answer: {answer}
           </span>
         </div>
+        
       </div>
     );
   }

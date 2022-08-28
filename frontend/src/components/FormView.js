@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component} from 'react';
 import $ from 'jquery';
 import '../stylesheets/FormView.css';
 
@@ -9,7 +9,7 @@ class FormView extends Component {
       question: '',
       answer: '',
       difficulty: 1,
-      category: 1,
+      category: '',
       categories: {},
     };
   }
@@ -19,12 +19,13 @@ class FormView extends Component {
       url: `/categories`, //TODO: update request URL
       type: 'GET',
       success: (result) => {
-        this.setState({ categories: result.categories });
+        this.setState({categories: result.categories });
+        this.setState({category: result.categories["1"]})
         return;
       },
-      error: (error) => {
-        alert('Unable to load categories. Please try your request again');
-        return;
+      error: function(xhr, status, error) {
+        var err = JSON.parse(xhr.responseText)
+        alert((err.message));
       },
     });
   }
@@ -48,11 +49,16 @@ class FormView extends Component {
       crossDomain: true,
       success: (result) => {
         document.getElementById('add-question-form').reset();
+        this.setState({category: this.state.categories["1"]})
+        this.setState({question: ''})
+        this.setState({answer: ''})
+        alert('Question added successfully')
+        
         return;
       },
-      error: (error) => {
-        alert('Unable to add question. Please try your request again');
-        return;
+      error: function(xhr, status, error) {
+        var err = JSON.parse(xhr.responseText)
+        alert((err.message));
       },
     });
   };
@@ -93,7 +99,7 @@ class FormView extends Component {
             <select name='category' onChange={this.handleChange}>
               {Object.keys(this.state.categories).map((id) => {
                 return (
-                  <option key={id} value={id}>
+                  <option key={id} value={this.state.categories[id]}>
                     {this.state.categories[id]}
                   </option>
                 );

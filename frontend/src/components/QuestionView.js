@@ -8,11 +8,13 @@ class QuestionView extends Component {
   constructor() {
     super();
     this.state = {
+      viewMode:'GENERAL',
       questions: [],
       page: 1,
       totalQuestions: 0,
       categories: {},
-      currentCategory: null,
+      currentCategory: 'ALL CATEGORIES',
+      searchQuery:''
     };
   }
 
@@ -26,16 +28,18 @@ class QuestionView extends Component {
       type: 'GET',
       success: (result) => {
         this.setState({
+          viewMode:'GENERAL',
           questions: result.questions,
           totalQuestions: result.total_questions,
           categories: result.categories,
-          currentCategory: result.current_category,
+          //currentCategory: result.current_category,
         });
+        
         return;
       },
-      error: (error) => {
-        alert('Unable to load questions. Please try your request again');
-        return;
+      error: function(xhr, status, error) {
+        var err = JSON.parse(xhr.responseText)
+        alert((err.message));
       },
     });
   };
@@ -63,28 +67,29 @@ class QuestionView extends Component {
     return pageNumbers;
   }
 
-  getByCategory = (id) => {
+  getByCategory = (type) => {
     $.ajax({
-      url: `/categories/${id}/questions`, //TODO: update request URL
+      url: `/categories/${type}/questions`, //TODO: update request URL
       type: 'GET',
       success: (result) => {
         this.setState({
+          viewMode:'CATEGORY',
           questions: result.questions,
-          totalQuestions: result.total_questions,
-          currentCategory: result.current_category,
+          totalQuestions: result.totalQuestions,
+          currentCategory: result.currentCategory,
         });
         return;
       },
-      error: (error) => {
-        alert('Unable to load questions. Please try your request again');
-        return;
+      error: function(xhr, status, error) {
+        var err = JSON.parse(xhr.responseText)
+        alert((err.message));
       },
     });
   };
 
   submitSearch = (searchTerm) => {
     $.ajax({
-      url: `/questions`, //TODO: update request URL
+      url: `/questions/search`, //TODO: update request URL
       type: 'POST',
       dataType: 'json',
       contentType: 'application/json',
@@ -95,15 +100,18 @@ class QuestionView extends Component {
       crossDomain: true,
       success: (result) => {
         this.setState({
+          viewMode:'SEARCH',
           questions: result.questions,
           totalQuestions: result.total_questions,
-          currentCategory: result.current_category,
+          search_categories:result.categories,
+          searchQuery:searchTerm,
+          currentCategory:'SEARCH RESULT'
         });
         return;
       },
-      error: (error) => {
-        alert('Unable to load questions. Please try your request again');
-        return;
+      error: function(xhr, status, error) {
+        var err = JSON.parse(xhr.responseText)
+        alert((err.message));
       },
     });
   };
@@ -115,16 +123,49 @@ class QuestionView extends Component {
           url: `/questions/${id}`, //TODO: update request URL
           type: 'DELETE',
           success: (result) => {
-            this.getQuestions();
+            
+              if (this.state.viewMode == 'GENERAL') this.getQuestions();
+              else if (this.state.viewMode == 'CATEGORY') this.getByCategory(this.state.currentCategory)
+              else if (this.state.viewMode == 'SEARCH') this.submitSearch(this.state.searchQuery)
+            
+            //alert(this.state.currentCategory)
+            //this.getQuestions();
           },
-          error: (error) => {
-            alert('Unable to load questions. Please try your request again');
-            return;
+          error: function(xhr, status, error) {
+            var err = JSON.parse(xhr.responseText)
+            alert((err.message));
           },
         });
       }
     }
   };
+  createNewCategory = ()=>{
+    var name = window.prompt("Please, name your new category: ");
+    if (name == null || name.trim() == '') return
+    //var logo = window.prompt("Please, link to your category logo: ");
+    $.ajax({
+      url: '/categories', //TODO: update request URL
+      type: 'POST',
+      dataType: 'json',
+      contentType: 'application/json',
+      data: JSON.stringify({
+        new_category_name: name,
+      }),
+      
+      xhrFields: {
+        withCredentials: true,
+      },
+      crossDomain: true,
+      success: (result) => {
+        alert("Category created successfully")
+        return;
+      },
+      error: function(xhr, status, error) {
+        var err = JSON.parse(xhr.responseText)
+        alert((err.message));
+      },
+    });
+  }
 
   render() {
     return (
@@ -142,7 +183,7 @@ class QuestionView extends Component {
               <li
                 key={id}
                 onClick={() => {
-                  this.getByCategory(id);
+                  this.getByCategory(this.state.categories[id]);
                 }}
               >
                 {this.state.categories[id]}
@@ -155,15 +196,21 @@ class QuestionView extends Component {
             ))}
           </ul>
           <Search submitSearch={this.submitSearch} />
+          <h3 align='center' onClick={() => {
+              this.createNewCategory();
+            }}
+          >
+            Add New Category
+          </h3>
         </div>
         <div className='questions-list'>
-          <h2>Questions</h2>
+          <h2>{this.state.currentCategory} / Questions</h2>
           {this.state.questions.map((q, ind) => (
             <Question
               key={q.id}
               question={q.question}
               answer={q.answer}
-              category={this.state.categories[q.category]}
+              category={q.category}
               difficulty={q.difficulty}
               questionAction={this.questionAction(q.id)}
             />

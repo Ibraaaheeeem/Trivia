@@ -27,15 +27,15 @@ class QuizView extends Component {
         this.setState({ categories: result.categories });
         return;
       },
-      error: (error) => {
-        alert('Unable to load categories. Please try your request again');
-        return;
+      error: function(xhr, status, error) {
+        var err = JSON.parse(xhr.responseText)
+        alert((err.message));
       },
     });
   }
 
   selectCategory = ({ type, id = 0 }) => {
-    this.setState({ quizCategory: { type, id } }, this.getNextQuestion);
+    this.setState({ quizCategory: type }, this.getNextQuestion);
   };
 
   handleChange = (event) => {
@@ -71,9 +71,9 @@ class QuizView extends Component {
         });
         return;
       },
-      error: (error) => {
-        alert('Unable to load question. Please try your request again');
-        return;
+      error: function(xhr, status, error) {
+        var err = JSON.parse(xhr.responseText)
+        alert((err.message));
       },
     });
   };
@@ -104,7 +104,7 @@ class QuizView extends Component {
       <div className='quiz-play-holder'>
         <div className='choose-header'>Choose Category</div>
         <div className='category-holder'>
-          <div className='play-category' onClick={this.selectCategory}>
+          <div className='play-category' onClick={() =>this.selectCategory({ type: 'ALL'})}>
             ALL
           </div>
           {Object.keys(this.state.categories).map((id) => {
@@ -177,6 +177,7 @@ class QuizView extends Component {
       this.renderCorrectAnswer()
     ) : (
       <div className='quiz-play-holder'>
+        {this.state.currentQuestion.category}
         <div className='quiz-question'>
           {this.state.currentQuestion.question}
         </div>
