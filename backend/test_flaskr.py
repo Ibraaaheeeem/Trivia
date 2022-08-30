@@ -1,6 +1,6 @@
 import math
 import os
-from random import random
+import random
 import re
 from sre_parse import CATEGORIES
 from unicodedata import category
@@ -46,8 +46,6 @@ class TriviaTestCase(unittest.TestCase):
             self.db.init_app(self.app)
             # create all tables
             self.db.create_all()
-            # self.insert_questions()
-            # self.insert_categories()
 
     def clear_db(self):
         # clear the database questions and categories
@@ -84,6 +82,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(json_result['success'], True)
         self.assertTrue((json_result['categories']))
+
         # total test categories is 5
         self.assertEqual(len(json_result['categories']), CATEGORIES_TO_INSERT)
 
@@ -91,15 +90,15 @@ class TriviaTestCase(unittest.TestCase):
     def test_404_get_categories(self):
 
         # SIMULATES A CONDITION WHERE THERE ARE NO CATEGORIES
-        # ENTERED INTO THE DATABASE
-        # PERHAPS IN A NEW SET-UP AND
+        # IN THE DATABASE SO IT
         # RETURNS AN ERROR NOTIFYING THE USER THAT
         # NO CATEGORY EXISTS
-
+        self.clear_db()
         response = self.client().get('/categories')
         json_result = json.loads(response.data)
-        self.assertEqual(json_result['success'], False)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(json_result['success'], True)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(json_result['categories'])
 
     # Test 3
     def test_get_questions_per_page_10(self):
@@ -109,24 +108,28 @@ class TriviaTestCase(unittest.TestCase):
         # PAGE
 
         with self.app.app_context():
+            self.insert_categories(CATEGORIES_TO_INSERT)
             self.insert_questions(QUESTIONS_TO_INSERT)
         response = self.client().get('/questions')
         json_result = json.loads(response.data)
         self.assertEqual(json_result['success'], True)
+
         # normally, 10 questions per page
         self.assertEqual(len(json_result['questions']), QUESTIONS_PER_PAGE)
         self.assertEqual(response.status_code, 200)
 
     # Test 4
-    def test_404_get_questions_per_page_10(self):
+    def test_no_questions_get_questions_per_page_10(self):
 
         # SIMULATES A CONDITION WHERE THERE ARE NO QUESTIONS IN THE DATABASE
         # AND RETURNS AN ERROR NOTIFYING THE USER NO QUESTIONS EXIST
 
         response = self.client().get('/questions')
         json_result = json.loads(response.data)
-        self.assertEqual(json_result['success'], False)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(json_result['success'], True)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(json_result['categories'])
+        self.assertFalse(json_result['questions'])
 
     # Test 5
     def test_get_questions_per_page_excessof10(self):
@@ -136,6 +139,7 @@ class TriviaTestCase(unittest.TestCase):
         # THE SECOND PAGE
 
         with self.app.app_context():
+            self.insert_categories(CATEGORIES_TO_INSERT)
             self.insert_questions(QUESTIONS_TO_INSERT)
         response = self.client().get('/questions?page=2')
         json_result = json.loads(response.data)
@@ -146,12 +150,14 @@ class TriviaTestCase(unittest.TestCase):
 
     # Test 6
     def test_get_questions_per_page_out_of_range(self):
+
         # INSERTS MORE THAN 10 QUESTIONS INTO THE DATABASE
         # AND TESTS THAT ENTERING A PAGE RANGE
         # OUTSIDE OF THE AVAILABLE
         # PROPERLY NOTIFIES THE USER
 
         with self.app.app_context():
+            self.insert_categories(CATEGORIES_TO_INSERT)
             self.insert_questions(QUESTIONS_TO_INSERT)
         trial_page_index = math.ceil(QUESTIONS_TO_INSERT / QUESTIONS_PER_PAGE)
         response = self.client().get('/questions?page='
@@ -161,9 +167,11 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(json_result['success'], False)
 
     # Test 7
+
     def test_get_questions_per_page_invalid(self):
         # TESTS FOR INVALID QUESTIONS PAGE REQUEST
         with self.app.app_context():
+            self.insert_categories(CATEGORIES_TO_INSERT)
             self.insert_questions(QUESTIONS_TO_INSERT)
         trial_page_index = -1
         response = self.client().get('/questions?page='
@@ -181,6 +189,7 @@ class TriviaTestCase(unittest.TestCase):
         # AFTER DELETION
 
         with self.app.app_context():
+            self.insert_categories(CATEGORIES_TO_INSERT)
             self.insert_questions(QUESTIONS_TO_INSERT)
         trial_q = Question(
             question='Who is the author of this book',
@@ -207,6 +216,7 @@ class TriviaTestCase(unittest.TestCase):
 
         # TEST FOR AN ATTEMPT TO DELETE A QUESTION WITH INVALID ID
         with self.app.app_context():
+            self.insert_categories(CATEGORIES_TO_INSERT)
             self.insert_questions(QUESTIONS_TO_INSERT)
 
         delete_id = -1
@@ -234,11 +244,12 @@ class TriviaTestCase(unittest.TestCase):
         # QUESTIONS BY 1
 
         with self.app.app_context():
+            self.insert_categories(CATEGORIES_TO_INSERT)
             self.insert_questions(QUESTIONS_TO_INSERT)
         trial_q = {
             'question': 'Who is the author of this book',
             'answer': 'I don\'t know',
-            'category': 'Cat 6',
+            'category': 6,
             'difficulty': 5
         }
         total_questions_before = len(Question.query.all())
@@ -260,11 +271,12 @@ class TriviaTestCase(unittest.TestCase):
         # SUCH AS AN EMPTY QUESTION OR ANSWER TEXT
 
         with self.app.app_context():
+            self.insert_categories(CATEGORIES_TO_INSERT)
             self.insert_questions(QUESTIONS_TO_INSERT)
         trial_q = {
             'question': 'Who is the author of this book',
             'answer': '',
-            'category': 'Cat 6',
+            'category': 6,
             'difficulty': 5
         }
         total_questions_before = len(Question.query.all())
@@ -284,6 +296,7 @@ class TriviaTestCase(unittest.TestCase):
 
         search_term = 'Question 1'
         with self.app.app_context():
+            self.insert_categories(CATEGORIES_TO_INSERT)
             self.insert_questions(QUESTIONS_TO_INSERT)
         search_message = {
             'searchTerm': search_term
@@ -305,6 +318,7 @@ class TriviaTestCase(unittest.TestCase):
         # SEARCHES FOR NON-EXISTING TEXT IN QUESTIONS
 
         with self.app.app_context():
+            self.insert_categories(CATEGORIES_TO_INSERT)
             self.insert_questions(QUESTIONS_TO_INSERT)
         search_message = {
             'searchTerm': 'NON_EXISTING_TERM'
@@ -325,13 +339,14 @@ class TriviaTestCase(unittest.TestCase):
         with self.app.app_context():
             self.insert_categories(CATEGORIES_TO_INSERT)
             self.insert_questions(QUESTIONS_TO_INSERT)
-        category_type = 'Cat 1'
+
+        category_ids = [category.id for category in Category.query.all()]
         expected_size_of_questions = len(
             Question.query.filter(
-                Question.category == category_type).all())
-        category_type_url_format = category_type.replace(' ', '%20')
+                Question.category == category_ids[0]).all())
         response = self.client().get(
-            f'categories/{category_type_url_format}/questions')
+            f'categories/{category_ids[0]}/questions')
+
         json_result = json.loads(response.data)
         self.assertEqual(response.status_code, 200)
         self.assertTrue((json_result['questions']))
@@ -348,10 +363,10 @@ class TriviaTestCase(unittest.TestCase):
         # WHEN THE CATEGORY DOES NOT EXIST
 
         with self.app.app_context():
+            self.insert_categories(CATEGORIES_TO_INSERT)
             self.insert_questions(QUESTIONS_TO_INSERT)
 
-        category_type = 'Cat 1'
-        category_type_url_format = category_type.replace(' ', '%20')
+        category_type = 1
         response = self.client().get(f'categories/{category_type}/questions')
         json_result = json.loads(response.data)
         self.assertEqual(json_result['success'], False)
@@ -365,9 +380,7 @@ class TriviaTestCase(unittest.TestCase):
 
         with self.app.app_context():
             self.insert_categories(CATEGORIES_TO_INSERT)
-        category_type = 'Cat 1'
-        category_type_url_format = category_type.replace(' ', '%20')
-
+        category_type = 1
         response = self.client().get(f'categories/{category_type}/questions')
         json_result = json.loads(response.data)
         self.assertEqual(json_result['success'], False)
@@ -378,24 +391,23 @@ class TriviaTestCase(unittest.TestCase):
 
         # GETS RANDOM QUESTION PER CALL
         # ENSURING THAT PREVIOUSLY ANSWERED QUESTIONS ARE NOT REPEATED
-
-        TEST_CATEGORY = 'Cat 1'
         with self.app.app_context():
             self.insert_categories(CATEGORIES_TO_INSERT)
             self.insert_questions(QUESTIONS_TO_INSERT)
+        category_ids = [category.id for category in Category.query.all()]
+        TEST_CATEGORY = category_ids[0]
         all_questions = Question.query.filter(
-            Question.category == TEST_CATEGORY)
+            Question.category == TEST_CATEGORY).all()
         all_questions_ids = [question.id for question in all_questions]
         params = {
             'quiz_category': TEST_CATEGORY,
-            'previous_questions': [all_questions_ids[0]]
+            'previous_questions': []
         }
         response = self.client().post(f'/quizzes', json=params)
         json_result = json.loads(response.data)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(json_result['question'])
         self.assertTrue(json_result['question_id'] in all_questions_ids)
-        self.assertTrue(json_result['question_id'] != all_questions_ids[0])
         self.assertEqual(json_result['success'], True)
 
     # Test 18
@@ -404,12 +416,14 @@ class TriviaTestCase(unittest.TestCase):
         # TEST FOR DETECTION AND PROPER PROMPT WHEN ALL QUESTIONS
         # IN A CATEGORY HAVE BEEN COMPLETELY ANSWERED IN GAME
 
-        TEST_CATEGORY = 'Cat 3'
         with self.app.app_context():
             self.insert_categories(CATEGORIES_TO_INSERT)
             self.insert_questions(QUESTIONS_TO_INSERT)
+
+        category_ids = [category.id for category in Category.query.all()]
+        TEST_CATEGORY = category_ids[0]
         all_questions = Question.query.filter(
-            Question.category == TEST_CATEGORY)
+            Question.category == TEST_CATEGORY).all()
         all_questions_ids = [question.id for question in all_questions]
         params = {
             'quiz_category': TEST_CATEGORY,
@@ -426,27 +440,36 @@ class TriviaTestCase(unittest.TestCase):
         # TESTS FOR ATTEMPT TO PLAY QUIZ
         # WHEN THERE ARE NO QUESTIONS OR CATEGORIES AVAILABLE
 
-        TEST_CATEGORY = 'Cat'
         with self.app.app_context():
             self.insert_categories(CATEGORIES_TO_INSERT)
             self.insert_questions(QUESTIONS_TO_INSERT)
+        category_ids = [category.id for category in Category.query.all()]
+        random_int = -1
+        while True:
+            random_int = random.randint(
+                max(category_ids), max(category_ids) * 3)
+            if (random_int not in category_ids):
+                break
+        if random_int < 0:
+            return
+        TEST_CATEGORY = random_int
         params = {
             'quiz_category': TEST_CATEGORY,
             'previous_questions': []
         }
         response = self.client().post(f'/quizzes', json=params)
         json_result = json.loads(response.data)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 404)
         self.assertEqual(json_result['success'], False)
 
     def insert_questions(self, x):
         # INSERTS TEST QUESTIONS
         for i in range(0, x):
-
+            cat_ids = [category.id for category in Category.query.all()]
             trial_q = Question(
                 question='Question ' + str(i + 1),
                 answer='Answer' + str(i + 1),
-                category='Cat ' + str((i + 1) % 5),
+                category=cat_ids[i % 5],  # (i + 1) % 5,
                 difficulty=i % 5
             )
             trial_q.insert()
@@ -455,7 +478,7 @@ class TriviaTestCase(unittest.TestCase):
         # INSERTS TEST CATEGORIES
         for i in range(0, x):
             trial_category = Category(
-                type="Cat " + str(i + 1)
+                type="Cat" + str(i + 1)
             )
             trial_category.insert()
 

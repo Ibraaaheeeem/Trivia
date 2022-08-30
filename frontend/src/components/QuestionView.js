@@ -13,7 +13,7 @@ class QuestionView extends Component {
       page: 1,
       totalQuestions: 0,
       categories: {},
-      currentCategory: 'ALL CATEGORIES',
+      currentCategory: 0,
       searchQuery:''
     };
   }
@@ -27,6 +27,24 @@ class QuestionView extends Component {
       url: `/questions?page=${this.state.page}`, //TODO: update request URL
       type: 'GET',
       success: (result) => {
+        if (result.questions == null) {
+          this.setState({questions: []})
+          alert("No questions found")
+          if (result.categories == null) {
+            alert("No categories found")
+            return;
+          }
+          else{
+            this.setState({
+              viewMode:'GENERAL',
+              totalQuestions: result.total_questions,
+              categories: result.categories,
+              //currentCategory: result.current_category,
+            });    
+          }
+          return;
+        }
+        
         this.setState({
           viewMode:'GENERAL',
           questions: result.questions,
@@ -44,6 +62,30 @@ class QuestionView extends Component {
     });
   };
 
+  getCategories = () => {
+    $.ajax({
+      url: `/categories`, //TODO: update request URL
+      type: 'GET',
+      success: (result) => {
+        if (result.categories == null) {
+          alert("No category found");
+          return;
+        }
+        
+        this.setState({
+          categories: result.categories,
+        });
+        
+        return;
+      },
+      error: function(xhr, status, error) {
+        var err = JSON.parse(xhr.responseText)
+        alert((err.message));
+      },
+    });
+  };
+
+  
   selectPage(num) {
     this.setState({ page: num }, () => this.getQuestions());
   }
@@ -67,9 +109,9 @@ class QuestionView extends Component {
     return pageNumbers;
   }
 
-  getByCategory = (type) => {
+  getByCategory = (id) => {
     $.ajax({
-      url: `/categories/${type}/questions`, //TODO: update request URL
+      url: `/categories/${id}/questions`, //TODO: update request URL
       type: 'GET',
       success: (result) => {
         this.setState({
@@ -158,6 +200,7 @@ class QuestionView extends Component {
       crossDomain: true,
       success: (result) => {
         alert("Category created successfully")
+        this.getCategories();
         return;
       },
       error: function(xhr, status, error) {
@@ -183,14 +226,14 @@ class QuestionView extends Component {
               <li
                 key={id}
                 onClick={() => {
-                  this.getByCategory(this.state.categories[id]);
+                  this.getByCategory(id);
                 }}
               >
                 {this.state.categories[id]}
                 <img
                   className='category'
-                  alt={`${this.state.categories[id].toLowerCase()}`}
-                  src={`${this.state.categories[id].toLowerCase()}.svg`}
+                  alt={`${this.state.categories[id]}`}
+                  src={`${this.state.categories[id]}.svg`}
                 />
               </li>
             ))}
@@ -204,13 +247,14 @@ class QuestionView extends Component {
           </h3>
         </div>
         <div className='questions-list'>
-          <h2>{this.state.currentCategory} / Questions</h2>
+          <h2>Questions</h2>
           {this.state.questions.map((q, ind) => (
             <Question
               key={q.id}
               question={q.question}
               answer={q.answer}
               category={q.category}
+              categoryName = {this.state.categories[q.category]}
               difficulty={q.difficulty}
               questionAction={this.questionAction(q.id)}
             />

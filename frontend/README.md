@@ -1,4 +1,15 @@
 # Frontend - Trivia API
+The Frontend section of the TRIVIA API contains the user interation part of the app
+
+A user can create questions in specified categories filling in the question text, answer text and the difficulty rating. Questions can also be deleted at will.
+
+Categories can be created so that questions can then be added under it
+
+On the home page, the app allows the user to read the questions in pages each of maximum 10 questions and view the answer by the toggling the Show/Hide Answer button
+
+In the Play section, a user can either seek challenge in a particular section or all sections whereby questions are asked and the user is expected to supply the answer
+
+A session of the game contains 5 questions after which the user is assessed and the final score is made available
 
 ## Getting Setup
 
@@ -73,6 +84,7 @@ You can optionally update this game play to increase the number of questions or 
 
 ```json
 {
+  "success": True,
   "categories": {
     "1": "Science",
     "2": "Art",
@@ -94,6 +106,7 @@ You can optionally update this game play to increase the number of questions or 
 
 ```json
 {
+  "success": True,
   "questions": [
     {
       "id": 1,
@@ -111,8 +124,7 @@ You can optionally update this game play to increase the number of questions or 
     "4": "History",
     "5": "Entertainment",
     "6": "Sports"
-  },
-  "currentCategory": "History"
+  }
 }
 ```
 
@@ -126,6 +138,7 @@ You can optionally update this game play to increase the number of questions or 
 
 ```json
 {
+  "success": True,
   "questions": [
     {
       "id": 1,
@@ -136,7 +149,7 @@ You can optionally update this game play to increase the number of questions or 
     }
   ],
   "totalQuestions": 100,
-  "currentCategory": "History"
+  "currentCategory": 4
 }
 ```
 
@@ -146,8 +159,17 @@ You can optionally update this game play to increase the number of questions or 
 
 - Deletes a specified question using the id of the question
 - Request Arguments: `id` - integer
-- Returns: Does not need to return anything besides the appropriate HTTP status code. Optionally can return the id of the question. If you are able to modify the frontend, you can have it remove the question using the id instead of refetching the questions.
+- Returns: 
+  `success`: flag which is True if operation is successfully 
+  `id`: id of the deleted question
+  Example:
 
+  ```json
+  {
+  "success":True,
+  "delete_id":9
+  }
+  ```
 ---
 
 `POST '/quizzes'`
@@ -157,15 +179,17 @@ You can optionally update this game play to increase the number of questions or 
 
 ```json
 {
-    'previous_questions': [1, 4, 20, 15]
-    quiz_category': 'current category'
+    "previous_questions": [1, 4, 20, 15],
+    "quiz_category": 5
  }
 ```
 
-- Returns: a single new question object
+- Returns: a json with new question object, id of the question object and success status
 
 ```json
 {
+  "success":True,
+  "question_id": 32,
   "question": {
     "id": 1,
     "question": "This is a question",
@@ -173,6 +197,7 @@ You can optionally update this game play to increase the number of questions or 
     "difficulty": 5,
     "category": 4
   }
+  
 }
 ```
 
@@ -192,25 +217,33 @@ You can optionally update this game play to increase the number of questions or 
 }
 ```
 
-- Returns: Does not return any new data
+- Returns: success status and the id of the question just created
 
 ---
+```json
+{
+"success":True,
+"created_id":13
+}
+```
 
-`POST '/questions'`
-
+---
+`POST '/questions/search'`
 - Sends a post request in order to search for a specific question by search term
 - Request Body:
 
 ```json
 {
-  "searchTerm": "this is the term the user is looking for"
+  "searchTerm": "something to search for"
 }
 ```
 
-- Returns: any array of questions, a number of totalQuestions that met the search term and the current category string
+- Returns: search term, success status, any array of questions, an dictionary of categories, a number of totalQuestions that met the search term and the current category id
 
 ```json
 {
+  "searchTerm":"SOMETHING TO SEARCH",
+  "success":True,
   "questions": [
     {
       "id": 1,
@@ -221,6 +254,6 @@ You can optionally update this game play to increase the number of questions or 
     }
   ],
   "totalQuestions": 100,
-  "currentCategory": "Entertainment"
+  "currentCategory": 5
 }
 ```

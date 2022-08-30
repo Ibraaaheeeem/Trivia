@@ -9,7 +9,7 @@ class FormView extends Component {
       question: '',
       answer: '',
       difficulty: 1,
-      category: '',
+      category: 1,
       categories: {},
     };
   }
@@ -20,7 +20,7 @@ class FormView extends Component {
       type: 'GET',
       success: (result) => {
         this.setState({categories: result.categories });
-        this.setState({category: result.categories["1"]})
+        this.setState({category: 1})
         return;
       },
       error: function(xhr, status, error) {
@@ -49,7 +49,7 @@ class FormView extends Component {
       crossDomain: true,
       success: (result) => {
         document.getElementById('add-question-form').reset();
-        this.setState({category: this.state.categories["1"]})
+        this.setState({category: 1})
         this.setState({question: ''})
         this.setState({answer: ''})
         alert('Question added successfully')
@@ -99,7 +99,7 @@ class FormView extends Component {
             <select name='category' onChange={this.handleChange}>
               {Object.keys(this.state.categories).map((id) => {
                 return (
-                  <option key={id} value={this.state.categories[id]}>
+                  <option key={id} value={id}>
                     {this.state.categories[id]}
                   </option>
                 );

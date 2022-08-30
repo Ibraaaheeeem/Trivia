@@ -8,7 +8,7 @@ class QuizView extends Component {
   constructor(props) {
     super();
     this.state = {
-      quizCategory: null,
+      quizCategory: -1,
       previousQuestions: [],
       showAnswer: false,
       categories: {},
@@ -34,8 +34,10 @@ class QuizView extends Component {
     });
   }
 
-  selectCategory = ({ type, id = 0 }) => {
-    this.setState({ quizCategory: type }, this.getNextQuestion);
+  selectCategory = ({ type, id }) => {
+    
+    this.setState({ quizCategory: id }, this.getNextQuestion);
+    //alert("/"+this.state.currentQuestion.question)
   };
 
   handleChange = (event) => {
@@ -62,6 +64,7 @@ class QuizView extends Component {
       },
       crossDomain: true,
       success: (result) => {
+        
         this.setState({
           showAnswer: false,
           previousQuestions: previousQuestions,
@@ -69,6 +72,7 @@ class QuizView extends Component {
           guess: '',
           forceEnd: result.question ? false : true,
         });
+        
         return;
       },
       error: function(xhr, status, error) {
@@ -89,7 +93,7 @@ class QuizView extends Component {
 
   restartGame = () => {
     this.setState({
-      quizCategory: null,
+      quizCategory: -1,
       previousQuestions: [],
       showAnswer: false,
       numCorrect: 0,
@@ -104,7 +108,8 @@ class QuizView extends Component {
       <div className='quiz-play-holder'>
         <div className='choose-header'>Choose Category</div>
         <div className='category-holder'>
-          <div className='play-category' onClick={() =>this.selectCategory({ type: 'ALL'})}>
+          <div className='play-category' onClick={() =>
+            this.selectCategory({ type: 'ALL', id: 0})}>
             ALL
           </div>
           {Object.keys(this.state.categories).map((id) => {
@@ -194,7 +199,7 @@ class QuizView extends Component {
   }
 
   render() {
-    return this.state.quizCategory ? this.renderPlay() : this.renderPrePlay();
+    return this.state.quizCategory>=0 ? this.renderPlay() : this.renderPrePlay();
   }
 }
 
