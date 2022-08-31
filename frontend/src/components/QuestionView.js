@@ -39,6 +39,7 @@ class QuestionView extends Component {
               viewMode:'GENERAL',
               totalQuestions: result.total_questions,
               categories: result.categories,
+              currentCategory: "ALL CATEGORIES "
               //currentCategory: result.current_category,
             });    
           }
@@ -50,15 +51,15 @@ class QuestionView extends Component {
           questions: result.questions,
           totalQuestions: result.total_questions,
           categories: result.categories,
-          //currentCategory: result.current_category,
+          currentCategory: "ALL CATEGORIES",
         });
         
         return;
       },
-      error: function(xhr, status, error) {
+      error: (xhr, status, error) => {
         var err = JSON.parse(xhr.responseText)
         alert((err.message));
-      },
+    },
     });
   };
 
@@ -78,10 +79,10 @@ class QuestionView extends Component {
         
         return;
       },
-      error: function(xhr, status, error) {
+      error: (xhr, status, error) => {
         var err = JSON.parse(xhr.responseText)
         alert((err.message));
-      },
+    },
     });
   };
 
@@ -118,14 +119,14 @@ class QuestionView extends Component {
           viewMode:'CATEGORY',
           questions: result.questions,
           totalQuestions: result.totalQuestions,
-          currentCategory: result.currentCategory,
+          currentCategory: this.state.categories[result.currentCategory],
         });
         return;
       },
-      error: function(xhr, status, error) {
+      error: (xhr, status, error) => {
         var err = JSON.parse(xhr.responseText)
         alert((err.message));
-      },
+    },
     });
   };
 
@@ -151,14 +152,14 @@ class QuestionView extends Component {
         });
         return;
       },
-      error: function(xhr, status, error) {
+      error: (xhr, status, error) => {
         var err = JSON.parse(xhr.responseText)
         alert((err.message));
-      },
+    },
     });
   };
 
-  questionAction = (id) => (action) => {
+  questionAction = (id, cat_id) => (action) => {
     if (action === 'DELETE') {
       if (window.confirm('are you sure you want to delete the question?')) {
         $.ajax({
@@ -167,13 +168,13 @@ class QuestionView extends Component {
           success: (result) => {
             
               if (this.state.viewMode == 'GENERAL') this.getQuestions();
-              else if (this.state.viewMode == 'CATEGORY') this.getByCategory(this.state.currentCategory)
+              else if (this.state.viewMode == 'CATEGORY') this.getByCategory(cat_id)
               else if (this.state.viewMode == 'SEARCH') this.submitSearch(this.state.searchQuery)
             
             //alert(this.state.currentCategory)
             //this.getQuestions();
           },
-          error: function(xhr, status, error) {
+          error: (xhr, status, error) => {
             var err = JSON.parse(xhr.responseText)
             alert((err.message));
           },
@@ -203,7 +204,7 @@ class QuestionView extends Component {
         this.getCategories();
         return;
       },
-      error: function(xhr, status, error) {
+      error: (xhr, status, error) => {
         var err = JSON.parse(xhr.responseText)
         alert((err.message));
       },
@@ -247,7 +248,7 @@ class QuestionView extends Component {
           </h3>
         </div>
         <div className='questions-list'>
-          <h2>Questions</h2>
+          <h2>{this.state.currentCategory}/Questions</h2>
           {this.state.questions.map((q, ind) => (
             <Question
               key={q.id}
@@ -256,7 +257,7 @@ class QuestionView extends Component {
               category={q.category}
               categoryName = {this.state.categories[q.category]}
               difficulty={q.difficulty}
-              questionAction={this.questionAction(q.id)}
+              questionAction={this.questionAction(q.id, q.category)}
             />
           ))}
           <div className='pagination-menu'>{this.createPagination()}</div>

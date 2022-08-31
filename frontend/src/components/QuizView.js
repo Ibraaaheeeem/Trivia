@@ -27,7 +27,7 @@ class QuizView extends Component {
         this.setState({ categories: result.categories });
         return;
       },
-      error: function(xhr, status, error) {
+      error: (xhr, status, error) => {
         var err = JSON.parse(xhr.responseText)
         alert((err.message));
       },
@@ -49,7 +49,13 @@ class QuizView extends Component {
     if (this.state.currentQuestion.id) {
       previousQuestions.push(this.state.currentQuestion.id);
     }
-
+    if (previousQuestions.length == questionsPerPlay){
+      this.setState({
+        previousQuestions: previousQuestions
+      })
+      return;
+    }
+    //if (previousQuestions.length === questionsPerPlay)renderFinalScore()
     $.ajax({
       url: '/quizzes', //TODO: update request URL
       type: 'POST',
@@ -75,12 +81,16 @@ class QuizView extends Component {
         
         return;
       },
-      error: function(xhr, status, error) {
+      error: (xhr, status, error) => {
+        this.setState({
+          forceEnd: true,
+        });
         var err = JSON.parse(xhr.responseText)
         alert((err.message));
-      },
-    });
-  };
+    },
+  });
+}
+
 
   submitGuess = (event) => {
     event.preventDefault();
@@ -182,7 +192,7 @@ class QuizView extends Component {
       this.renderCorrectAnswer()
     ) : (
       <div className='quiz-play-holder'>
-        {this.state.currentQuestion.category}
+        {this.state.categories[this.state.currentQuestion.category]}
         <div className='quiz-question'>
           {this.state.currentQuestion.question}
         </div>
@@ -199,6 +209,7 @@ class QuizView extends Component {
   }
 
   render() {
+    //if (this.state.previousQuestions.length === questionsPerPlay)renderFinalScore()
     return this.state.quizCategory>=0 ? this.renderPlay() : this.renderPrePlay();
   }
 }

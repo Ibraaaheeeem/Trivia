@@ -23,10 +23,10 @@ class FormView extends Component {
         this.setState({category: 1})
         return;
       },
-      error: function(xhr, status, error) {
+      error: (xhr, status, error) => {
         var err = JSON.parse(xhr.responseText)
         alert((err.message));
-      },
+    },
     });
   }
 
@@ -56,10 +56,10 @@ class FormView extends Component {
         
         return;
       },
-      error: function(xhr, status, error) {
+      error: (xhr, status, error) => {
         var err = JSON.parse(xhr.responseText)
         alert((err.message));
-      },
+    },
     });
   };
 

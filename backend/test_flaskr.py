@@ -191,10 +191,11 @@ class TriviaTestCase(unittest.TestCase):
         with self.app.app_context():
             self.insert_categories(CATEGORIES_TO_INSERT)
             self.insert_questions(QUESTIONS_TO_INSERT)
+        category_ids = [category.id for category in Category.query.all()]
         trial_q = Question(
             question='Who is the author of this book',
             answer='I don\'t know',
-            category=2,
+            category=category_ids[0],
             difficulty=5
         )
         trial_q.insert()
@@ -246,10 +247,11 @@ class TriviaTestCase(unittest.TestCase):
         with self.app.app_context():
             self.insert_categories(CATEGORIES_TO_INSERT)
             self.insert_questions(QUESTIONS_TO_INSERT)
+        category_ids = [category.id for category in Category.query.all()]
         trial_q = {
             'question': 'Who is the author of this book',
             'answer': 'I don\'t know',
-            'category': 6,
+            'category': category_ids[0],
             'difficulty': 5
         }
         total_questions_before = len(Question.query.all())
@@ -273,10 +275,11 @@ class TriviaTestCase(unittest.TestCase):
         with self.app.app_context():
             self.insert_categories(CATEGORIES_TO_INSERT)
             self.insert_questions(QUESTIONS_TO_INSERT)
+        category_ids = [category.id for category in Category.query.all()]
         trial_q = {
             'question': 'Who is the author of this book',
             'answer': '',
-            'category': 6,
+            'category': category_ids[0],
             'difficulty': 5
         }
         total_questions_before = len(Question.query.all())
@@ -380,8 +383,9 @@ class TriviaTestCase(unittest.TestCase):
 
         with self.app.app_context():
             self.insert_categories(CATEGORIES_TO_INSERT)
-        category_type = 1
-        response = self.client().get(f'categories/{category_type}/questions')
+        category_ids = [category.id for category in Category.query.all()]
+        category_id = category_ids[0]
+        response = self.client().get(f'categories/{category_id}/questions')
         json_result = json.loads(response.data)
         self.assertEqual(json_result['success'], False)
         self.assertEqual(response.status_code, 404)
