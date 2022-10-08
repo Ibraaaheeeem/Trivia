@@ -3,7 +3,9 @@ The Backend section of the Trivia API contains endpoints that allow the front en
 
 ## Setting up the Backend
 While in the frontend folder, typing the following commands will start the backend
+
 `export FLASK_APP=flaskr/__init__.py`
+
 `npm run start-backend`
 
 ### Install Dependencies
